@@ -1,0 +1,52 @@
+{
+  "name": "arboreta-by-shifuta",
+  "version": "1.0.0",
+  "description": "Premium botanical e-commerce platform",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "seed": "tsx scripts/seed-products.ts",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.6.0",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "@supabase/supabase-js": "^2.38.0",
+    "@supabase/auth-helpers-nextjs": "^0.8.0",
+    "stripe": "^14.0.0",
+    "@stripe/react-stripe-js": "^2.1.0",
+    "@stripe/stripe-js": "^3.0.0",
+    "react-hook-form": "^7.48.0",
+    "zod": "^3.22.0",
+    "@hookform/resolvers": "^3.3.0",
+    "@tanstack/react-query": "^5.0.0",
+    "framer-motion": "^10.16.0",
+    "@heroicons/react": "^2.1.0",
+    "resend": "^3.0.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^8.54.0",
+    "eslint-config-next": "^15.0.0",
+    "prettier": "^3.1.0",
+    "vitest": "^1.0.0",
+    "playwright": "^1.40.0",
+    "@playwright/test": "^1.40.0",
+    "tsx": "^4.0.0"
+  }
+}
