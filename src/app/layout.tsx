@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { CartDrawer } from '@/components/CartDrawer';
+import { CartProvider } from '@/lib/cart-context';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,15 +19,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-cream-50 text-charcoal">
-        <div className="min-h-screen flex flex-col">
-          <header className="sticky top-0 z-40 bg-forest-700 text-cream-50 shadow-card">
+        <CartProvider>
+          <div className="min-h-screen flex flex-col">
+            <header className="sticky top-0 z-40 bg-forest-700 text-cream-50 shadow-card">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
-              <div className="text-2xl font-display font-bold">Arboreta</div>
+              <a href="/" className="text-2xl font-display font-bold hover:text-gold-400 transition-colors">Arboreta</a>
               <div className="hidden md:flex gap-8 text-sm">
                 <a href="/" className="hover:text-gold-400 transition-smooth">Home</a>
                 <a href="/categories" className="hover:text-gold-400 transition-smooth">Shop</a>
-                <a href="/about" className="hover:text-gold-400 transition-smooth">About</a>
-                <a href="/contact" className="hover:text-gold-400 transition-smooth">Contact</a>
+                <a href="/" className="hover:text-gold-400 transition-smooth">About</a>
+                <a href="/" className="hover:text-gold-400 transition-smooth">Contact</a>
               </div>
               <div className="flex gap-4">
                 <button className="p-2 hover:text-gold-400 transition-smooth">🛒 Cart</button>
@@ -82,7 +85,9 @@ export default function RootLayout({
               </div>
             </div>
           </footer>
-        </div>
+          </div>
+          <CartDrawer />
+        </CartProvider>
       </body>
     </html>
   );

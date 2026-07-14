@@ -1,4 +1,13 @@
+'use client';
+
+import { ProductCard } from '@/components/ProductCard';
+import { useCart } from '@/lib/cart-context';
+import { DUMMY_PRODUCTS } from '@/lib/dummy-products';
+import Link from 'next/link';
+
 export default function HomePage() {
+  const { addItem } = useCart();
+
   const categories = [
     { id: 'seeds', label: 'Seeds', icon: '🌱' },
     { id: 'flowers', label: 'Flower Trees', icon: '🌸' },
@@ -9,40 +18,8 @@ export default function HomePage() {
     { id: 'office', label: 'Office Plants', icon: '🪴' },
   ];
 
-  const featuredPlants = [
-    {
-      id: 1,
-      name: 'Monstera Deliciosa',
-      latinName: 'Variegata',
-      price: 45000,
-      image: '🪨',
-      rarity: 'Rare',
-    },
-    {
-      id: 2,
-      name: 'Japanese Black Pine',
-      latinName: 'Bonsai Specimen',
-      price: 120000,
-      image: '🌲',
-      rarity: 'Ultra-rare',
-    },
-    {
-      id: 3,
-      name: 'Corpse Flower',
-      latinName: 'Amorphophallus titanium',
-      price: 35000,
-      image: '🌺',
-      rarity: 'Ultra-rare',
-    },
-    {
-      id: 4,
-      name: 'Dragon Fruit Tree',
-      latinName: 'Hylocereus',
-      price: 18000,
-      image: '🐉',
-      rarity: 'Rare',
-    },
-  ];
+  // Get featured plants (ultra-rare first, then the rarest)
+  const featuredPlants = DUMMY_PRODUCTS.filter((p) => p.rarity === 'ultra-rare').slice(0, 4);
 
   return (
     <div className="w-full">
@@ -59,9 +36,11 @@ export default function HomePage() {
           <p className="text-lg md:text-xl text-cream-100 font-body mb-8 opacity-90">
             Curated botanical specimens for the discerning collector
           </p>
-          <button className="btn-primary text-lg px-8 py-4">
-            Explore Our Collection
-          </button>
+          <Link href="/categories">
+            <button className="btn-primary text-lg px-8 py-4">
+              Explore Our Collection
+            </button>
+          </Link>
         </div>
       </section>
 
@@ -73,9 +52,9 @@ export default function HomePage() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             {categories.map((cat) => (
-              <a
+              <Link
                 key={cat.id}
-                href={`/categories/${cat.id}`}
+                href="/categories"
                 className="flex flex-col items-center p-6 rounded-lg bg-white card-shadow hover:bg-cream-100 transition-smooth group"
               >
                 <span className="text-5xl mb-4 group-hover:scale-110 transition-transform">
@@ -84,7 +63,7 @@ export default function HomePage() {
                 <span className="text-center font-body text-sm font-600 text-forest-700">
                   {cat.label}
                 </span>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -104,50 +83,11 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {featuredPlants.map((plant) => (
-              <a
+              <ProductCard
                 key={plant.id}
-                href={`/products/${plant.id}`}
-                className="group flex flex-col card-shadow rounded-lg overflow-hidden hover:shadow-card-hover transition-smooth"
-              >
-                {/* Image Area */}
-                <div className="relative h-80 bg-gradient-to-b from-sage-200 to-cream-100 flex items-center justify-center overflow-hidden">
-                  <span className="text-8xl group-hover:scale-110 transition-transform">
-                    {plant.image}
-                  </span>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 p-6 flex flex-col justify-between bg-cream-50">
-                  <div>
-                    <h3 className="text-xl font-display font-bold text-forest-700 mb-1">
-                      {plant.name}
-                    </h3>
-                    <p className="text-sm font-accent italic text-charcoal/60 mb-4">
-                      {plant.latinName}
-                    </p>
-                    <div className="flex gap-2 mb-6">
-                      <span className="text-xs uppercase tracking-widest font-body font-600 px-2 py-1 rounded-xs bg-terracotta/20 text-terracotta">
-                        {plant.rarity}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="text-2xl font-display text-gold-400 font-bold">
-                      ৳ {plant.price.toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2 mt-6 pt-6 border-t border-cream-200">
-                    <button className="flex-1 py-2 px-4 bg-forest-700 text-cream-50 rounded-xs font-body font-600 text-sm hover:bg-forest-800 transition-smooth">
-                      Add to Cart
-                    </button>
-                    <button className="py-2 px-4 border border-forest-700 text-forest-700 rounded-xs font-body font-600 text-sm hover:bg-forest-50 transition-smooth">
-                      ♡
-                    </button>
-                  </div>
-                </div>
-              </a>
+                product={plant}
+                onAddToCart={addItem}
+              />
             ))}
           </div>
         </div>
