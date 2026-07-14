@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital@0;1&display=swap');
 
 * {
@@ -13,46 +17,46 @@ html {
 }
 
 body {
-  font-family: theme('fontFamily.body');
-  background-color: theme('colors.cream.50');
-  color: theme('colors.charcoal');
+  background-color: #f5f3f0;
+  color: #2a2a2a;
   line-height: 1.6;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: theme('fontFamily.display');
+  font-family: 'Playfair Display', serif;
   font-weight: 500;
-  color: theme('colors.forest.700');
+  color: #1a472a;
 }
 
 h1 {
-  font-size: theme('fontSize.display-xl[0]');
-  line-height: theme('fontSize.display-xl[1].lineHeight');
-  letter-spacing: theme('fontSize.display-xl[1].letterSpacing');
+  font-size: 56px;
+  line-height: 1.2;
+  letter-spacing: 0.025em;
 }
 
 h2 {
-  font-size: theme('fontSize.display-lg[0]');
-  line-height: theme('fontSize.display-lg[1].lineHeight');
-  letter-spacing: theme('fontSize.display-lg[1].letterSpacing');
+  font-size: 40px;
+  line-height: 1.2;
+  letter-spacing: 0.0125em;
 }
 
 h3 {
-  font-size: theme('fontSize.display-md[0]');
+  font-size: 28px;
 }
 
 h4 {
-  font-size: theme('fontSize.display-sm[0]');
+  font-size: 20px;
 }
 
 a {
-  color: theme('colors.forest.700');
+  color: #1a472a;
   text-decoration: none;
   transition: all 200ms ease;
 }
 
 a:hover {
-  color: theme('colors.gold.400');
+  color: #d4a574;
 }
 
 button {
@@ -60,75 +64,108 @@ button {
   cursor: pointer;
 }
 
-/* Focus Ring for Accessibility */
 *:focus-visible {
-  outline: 2px solid theme('colors.gold.300');
+  outline: 2px solid #d4a574;
   outline-offset: 2px;
 }
 
-/* Smooth transitions */
-@layer utilities {
-  .transition-smooth {
-    @apply transition-all duration-300 ease-out;
-  }
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
 
-  .text-display-xl {
-    @apply text-5xl font-display font-500 tracking-wide;
-  }
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  border: 1px solid #6b8e6f;
+  background-color: #f5f3f0;
+  padding: 12px;
+  border-radius: 4px;
+  transition: all 200ms ease;
+  width: 100%;
+}
 
-  .text-display-lg {
-    @apply text-4xl font-display font-500;
-  }
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #d4a574;
+  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.1);
+}
 
-  .text-display-md {
-    @apply text-2xl font-display font-500;
-  }
+input::placeholder,
+textarea::placeholder {
+  color: #2a2a2a;
+  opacity: 0.5;
+  font-style: italic;
+}
 
-  .text-display-sm {
-    @apply text-xl font-display font-500;
-  }
+::selection {
+  background-color: #1a472a;
+  color: #f5f3f0;
+}
 
-  .text-body-base {
-    @apply text-base font-body font-400;
-  }
+.transition-smooth {
+  transition: all 300ms ease-out;
+}
 
-  .text-body-sm {
-    @apply text-sm font-body font-400;
-  }
+.btn-primary {
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  background-color: #1a472a;
+  color: #f5f3f0;
+  border: none;
+}
 
-  .text-accent-sm {
-    @apply text-xs font-body font-500 uppercase tracking-widest;
-  }
+.btn-primary:hover {
+  background-color: #0d2415;
+}
 
-  /* Premium Button Base */
-  .btn-base {
-    @apply px-6 py-3 rounded-xs font-body font-500 transition-smooth disabled:opacity-50 disabled:cursor-not-allowed;
-  }
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  background-color: transparent;
+  color: #1a472a;
+  border: 1px solid #1a472a;
+}
 
-  .btn-primary {
-    @apply btn-base bg-forest-700 text-cream-50 hover:bg-forest-800;
-  }
+.btn-secondary:hover {
+  background-color: #f0f5f2;
+}
 
-  .btn-secondary {
-    @apply btn-base border border-forest-700 text-forest-700 hover:bg-forest-50;
-  }
+.card-shadow {
+  box-shadow: 0 2px 8px rgba(26, 71, 42, 0.08);
+}
 
-  .btn-ghost {
-    @apply btn-base text-forest-700 hover:text-gold-400;
-  }
+.card-shadow:hover {
+  box-shadow: 0 8px 24px rgba(26, 71, 42, 0.12);
+  transition: all 300ms ease-out;
+}
 
-  /* Card Shadow */
-  .card-shadow {
-    @apply shadow-card hover:shadow-card-hover transition-smooth;
-  }
+.section-padding {
+  padding: 80px 0;
+}
 
-  /* Section Spacing */
+@media (max-width: 768px) {
   .section-padding {
-    @apply py-20 md:py-32 lg:py-40;
+    padding: 48px 0;
+  }
+  h1 {
+    font-size: 32px;
   }
 }
 
-/* Animation: Leaf Spin */
 @keyframes leaf-spin {
   from {
     transform: rotate(0deg);
@@ -140,45 +177,4 @@ button {
 
 .animate-leaf {
   animation: leaf-spin 1.5s linear infinite;
-}
-
-/* Responsive Images */
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Form Styles */
-input,
-textarea,
-select {
-  font-family: inherit;
-  font-size: inherit;
-  border: 1px solid theme('colors.forest.400');
-  background-color: theme('colors.cream.50');
-  padding: 12px;
-  border-radius: theme('borderRadius.xs');
-  transition: all 200ms ease;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: theme('colors.gold.300');
-  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.1);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: theme('colors.charcoal');
-  opacity: 0.5;
-  font-style: italic;
-}
-
-/* Selection */
-::selection {
-  background-color: theme('colors.forest.700');
-  color: theme('colors.cream.50');
 }
