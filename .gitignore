@@ -39,3 +39,7 @@ coverage/
 # Misc
 .turbo/
 turbo.json.local
+
+# Local order storage
+/data/
+tsconfig.tsbuildinfo

@@ -1,5 +1,6 @@
 'use client';
 
+import { LUCKY_DISCOUNT } from '@/lib/lucky-tree';
 import { Product } from '@/types/product';
 import { ReactNode, createContext, useContext, useState } from 'react';
 
@@ -11,6 +12,12 @@ export interface CartItem {
 interface CartContextType {
   items: CartItem[];
   addItem: (product: Product, quantity?: number) => void;
+  /** Adds one unit with the Lucky Tree Finder discount applied. */
+  addLuckyItem: (product: Product) => void;
+  isOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  toggleCart: () => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -23,6 +30,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   const addItem = (product: Product, quantity = 1) => {
     setItems((prev) => {
@@ -35,6 +43,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
       }
       return [...prev, { product, quantity }];
+    });
+  };
+
+  const addLuckyItem = (product: Product) => {
+    const luckyId = `${product.id}:lucky`;
+    setItems((prev) => {
+      if (prev.some((item) => item.product.id === luckyId)) return prev;
+      const discounted: Product = {
+        ...product,
+        id: luckyId,
+        price: Math.max(0, product.price - LUCKY_DISCOUNT),
+        luckyDiscount: LUCKY_DISCOUNT,
+      };
+      return [...prev, { product: discounted, quantity: 1 }];
     });
   };
 
@@ -72,6 +94,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         items,
         addItem,
+        addLuckyItem,
+        isOpen,
+        openCart: () => setIsOpen(true),
+        closeCart: () => setIsOpen(false),
+        toggleCart: () => setIsOpen((v) => !v),
         removeItem,
         updateQuantity,
         clearCart,

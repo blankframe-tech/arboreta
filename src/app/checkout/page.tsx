@@ -1,68 +1,106 @@
 'use client';
 
 import { useCart } from '@/lib/cart-context';
+import {
+  BKASH_NUMBER,
+  NAGAD_NUMBER,
+  PAYMENT_LABELS,
+  PaymentMethod,
+  shippingFor,
+} from '@/lib/shop-config';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+
+const inputCls =
+  'w-full border border-sage-200 rounded-xs px-3 py-2 font-body bg-white focus:outline-none focus:border-forest-700';
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
-  const router = useRouter();
-  const [step, setStep] = useState<'shipping' | 'payment' | 'confirmation'>(
-    'shipping'
-  );
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: '',
-    email: '',
     phone: '',
-    street: '',
+    email: '',
+    address: '',
     city: '',
-    postal: '',
+    note: '',
+    transactionId: '',
+    payerNumber: '',
   });
-  const [orderNumber, setOrderNumber] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('bkash');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [done, setDone] = useState<{ orderNumber: string; total: number; method: PaymentMethod } | null>(null);
 
-  const shipping = subtotal >= 5000 ? 0 : 200;
-  const tax = Math.round(subtotal * 0.05);
-  const total = subtotal + shipping + tax;
+  const shipping = shippingFor(subtotal);
+  const total = subtotal + shipping;
+  const payNumber = method === 'bkash' ? BKASH_NUMBER : NAGAD_NUMBER;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const set = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleShippingSubmit = (e: React.FormEvent) => {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (
-      formData.name &&
-      formData.email &&
-      formData.phone &&
-      formData.street &&
-      formData.city &&
-      formData.postal
-    ) {
-      setStep('payment');
+    setError('');
+    setBusy(true);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          paymentMethod: method,
+          items: items.map((i) => ({ id: i.product.id, quantity: i.quantity })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
+      setDone({ orderNumber: data.orderNumber, total: data.total, method });
+      clearCart();
+    } catch {
+      setError('Network problem. Please try again.');
+    } finally {
+      setBusy(false);
     }
-  };
+  }
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simulate payment success
-    const number = `ORD-${Date.now().toString().slice(-8)}`;
-    setOrderNumber(number);
-    clearCart();
-    setStep('confirmation');
-  };
+  if (done) {
+    return (
+      <div className="min-h-screen bg-cream-50 py-16 px-4">
+        <div className="max-w-xl mx-auto text-center">
+          <div className="text-6xl mb-6">🌱</div>
+          <h1 className="text-4xl font-display font-bold text-forest-700 mb-3">Order received!</h1>
+          <p className="text-lg font-display font-bold text-gold-400 mb-6">Order #{done.orderNumber}</p>
+          <div className="bg-white rounded-lg p-6 card-shadow text-left font-body text-charcoal/80 space-y-3 mb-8">
+            {done.method === 'cod' ? (
+              <p>
+                We will <strong>call you on the phone number you gave</strong> to confirm your order. Your plants are
+                shipped after that call. Please keep ৳{done.total.toLocaleString()} ready to pay on delivery.
+              </p>
+            ) : (
+              <p>
+                Thank you! We will verify your {PAYMENT_LABELS[done.method]} payment of ৳{done.total.toLocaleString()} and
+                your plants will be on their way to you.
+              </p>
+            )}
+            <p className="text-sm text-charcoal/60">Plants are sent directly from our partner nursery, carefully packed.</p>
+          </div>
+          <Link href="/categories">
+            <button className="btn-primary">Keep browsing</button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-  if (items.length === 0 && step !== 'confirmation') {
+  if (items.length === 0) {
     return (
       <div className="min-h-screen bg-cream-50 flex items-center justify-center">
         <div className="max-w-md text-center">
-          <h1 className="text-4xl font-display font-bold text-forest-700 mb-4">
-            Your Cart is Empty
-          </h1>
-          <p className="text-charcoal/60 font-body mb-8">
-            Add some beautiful plants to your collection before checking out.
-          </p>
+          <h1 className="text-4xl font-display font-bold text-forest-700 mb-4">Your Cart is Empty</h1>
+          <p className="text-charcoal/60 font-body mb-8">Add some beautiful plants before checking out.</p>
           <Link href="/categories">
             <button className="btn-primary">Continue Shopping</button>
           </Link>
@@ -73,315 +111,116 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-cream-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Progress Indicator */}
-        <div className="flex justify-center gap-4 mb-12">
-          {(['shipping', 'payment', 'confirmation'] as const).map(
-            (s, index) => (
-              <div key={s} className="flex items-center gap-2">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-bold ${
-                    step === s || (step === 'confirmation' && s !== 'confirmation')
-                      ? 'bg-forest-700 text-cream-50'
-                      : 'bg-sage-200 text-forest-700'
-                  }`}
-                >
-                  {index + 1}
-                </div>
-                <span className="font-body text-sm text-forest-700 capitalize">
-                  {s}
-                </span>
-                {index < 2 && (
-                  <div className="w-12 h-0.5 bg-sage-200 mx-2" />
-                )}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-4xl font-display font-bold text-forest-700 mb-8">Checkout</h1>
+        <form onSubmit={submit} className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <section className="bg-white rounded-lg p-6 card-shadow">
+              <h2 className="text-xl font-display font-bold text-forest-700 mb-4">Delivery details</h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <input required name="name" value={form.name} onChange={set} placeholder="Full name" className={inputCls} />
+                <input
+                  required
+                  name="phone"
+                  value={form.phone}
+                  onChange={set}
+                  placeholder="Mobile number (01XXXXXXXXX)"
+                  inputMode="tel"
+                  className={inputCls}
+                />
+                <input name="email" type="email" value={form.email} onChange={set} placeholder="Email (optional)" className={`${inputCls} sm:col-span-2`} />
+                <input required name="address" value={form.address} onChange={set} placeholder="Full address (house, road, area)" className={`${inputCls} sm:col-span-2`} />
+                <input required name="city" value={form.city} onChange={set} placeholder="District / city" className={inputCls} />
+                <input name="note" value={form.note} onChange={set} placeholder="Note for delivery (optional)" className={inputCls} />
               </div>
-            )
-          )}
-        </div>
+            </section>
 
-        {step === 'confirmation' ? (
-          // Confirmation
-          <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="text-6xl mb-6">🎉</div>
-              <h1 className="text-5xl font-display font-bold text-forest-700 mb-4">
-                Order Placed!
-              </h1>
-              <p className="text-xl text-charcoal/60 font-body mb-2">
-                Thank you for your purchase.
-              </p>
-              <p className="text-lg font-display font-bold text-gold-400">
-                Order #{orderNumber}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-8 mb-8 card-shadow">
-              <h2 className="text-2xl font-display font-bold text-forest-700 mb-6">
-                Order Details
-              </h2>
-
-              <div className="space-y-4 mb-8 border-b border-cream-200 pb-8">
-                {items.map((item) => (
-                  <div key={item.product.id} className="flex justify-between">
-                    <div>
-                      <p className="font-body font-600 text-forest-700">
-                        {item.product.name}
-                      </p>
-                      <p className="text-sm text-charcoal/60 font-body">
-                        Quantity: {item.quantity}
-                      </p>
-                    </div>
-                    <p className="font-body font-600 text-forest-700">
-                      ৳ {(item.product.price * item.quantity).toLocaleString()}
-                    </p>
-                  </div>
+            <section className="bg-white rounded-lg p-6 card-shadow">
+              <h2 className="text-xl font-display font-bold text-forest-700 mb-4">Payment</h2>
+              <div className="grid sm:grid-cols-3 gap-3 mb-5">
+                {(['bkash', 'nagad', 'cod'] as const).map((m) => (
+                  <label
+                    key={m}
+                    className={`cursor-pointer border rounded-xs px-4 py-3 text-center font-body font-600 ${
+                      method === m ? 'border-forest-700 bg-forest-50 text-forest-700' : 'border-sage-200 text-charcoal/70'
+                    }`}
+                  >
+                    <input type="radio" name="method" className="sr-only" checked={method === m} onChange={() => setMethod(m)} />
+                    {PAYMENT_LABELS[m]}
+                  </label>
                 ))}
               </div>
 
-              <div className="space-y-3 mb-8">
-                <div className="flex justify-between text-charcoal/70">
-                  <span className="font-body">Subtotal</span>
-                  <span>৳ {subtotal.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-charcoal/70">
-                  <span className="font-body">Shipping</span>
-                  <span>{shipping === 0 ? 'Free' : `৳ ${shipping}`}</span>
-                </div>
-                <div className="flex justify-between text-charcoal/70">
-                  <span className="font-body">Tax (5%)</span>
-                  <span>৳ {tax.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between border-t border-cream-200 pt-3">
-                  <span className="font-display font-bold text-forest-700">
-                    Total
-                  </span>
-                  <span className="font-display font-bold text-lg text-gold-400">
-                    ৳ {total.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-cream-50 p-6 rounded-lg">
-                <h3 className="font-display font-bold text-forest-700 mb-4">
-                  Shipping To
-                </h3>
-                <p className="font-body text-charcoal mb-1">{formData.name}</p>
-                <p className="font-body text-charcoal/70 text-sm">
-                  {formData.street}, {formData.city} {formData.postal}
+              {method === 'cod' ? (
+                <p className="text-sm font-body text-charcoal/70 bg-cream-100 rounded-xs p-4">
+                  Pay in cash when your plants arrive. <strong>We will call you first</strong> to confirm the order — it is
+                  shipped only after that call, so please keep your phone on.
                 </p>
-                <p className="font-body text-charcoal/70 text-sm">{formData.email}</p>
-              </div>
-            </div>
-
-            <div className="bg-forest-100 border border-forest-400 rounded-lg p-6 mb-8">
-              <p className="font-body text-forest-700">
-                📧 A confirmation email has been sent to{' '}
-                <span className="font-bold">{formData.email}</span>
-              </p>
-            </div>
-
-            <div className="flex gap-4 justify-center">
-              <Link href="/">
-                <button className="btn-primary">Back to Home</button>
-              </Link>
-              <Link href="/categories">
-                <button className="btn-secondary">Continue Shopping</button>
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Form */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg p-8 card-shadow">
-                {step === 'shipping' ? (
-                  <form onSubmit={handleShippingSubmit}>
-                    <h2 className="text-2xl font-display font-bold text-forest-700 mb-8">
-                      Shipping Address
-                    </h2>
-
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
-                        <input
-                          type="text"
-                          name="name"
-                          placeholder="Full Name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          required
-                          className="col-span-2"
-                        />
-                        <input
-                          type="email"
-                          name="email"
-                          placeholder="Email Address"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          required
-                          className="col-span-2"
-                        />
-                        <input
-                          type="tel"
-                          name="phone"
-                          placeholder="Phone Number"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          required
-                          className="col-span-2"
-                        />
-                        <input
-                          type="text"
-                          name="street"
-                          placeholder="Street Address"
-                          value={formData.street}
-                          onChange={handleInputChange}
-                          required
-                          className="col-span-2"
-                        />
-                        <input
-                          type="text"
-                          name="city"
-                          placeholder="City"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          required
-                        />
-                        <input
-                          type="text"
-                          name="postal"
-                          placeholder="Postal Code"
-                          value={formData.postal}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-
-                      <button type="submit" className="w-full btn-primary mt-8">
-                        Continue to Payment
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handlePaymentSubmit}>
-                    <h2 className="text-2xl font-display font-bold text-forest-700 mb-8">
-                      Payment Method
-                    </h2>
-
-                    <div className="space-y-6">
-                      <div className="border border-forest-400 rounded-xs p-6 bg-cream-50">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="payment"
-                            defaultChecked
-                            className="w-5 h-5"
-                          />
-                          <span className="font-body font-600 text-forest-700">
-                            Credit / Debit Card (Stripe)
-                          </span>
-                        </label>
-                      </div>
-
-                      <div className="p-6 bg-forest-50 rounded-xs border border-forest-200">
-                        <p className="text-sm text-charcoal/60 font-body mb-4">
-                          Demo mode: Use any card number. This is a demonstration checkout.
-                        </p>
-                        <div className="space-y-4">
-                          <input
-                            type="text"
-                            placeholder="Card Number (4242 4242 4242 4242)"
-                            className="w-full"
-                            defaultValue="4242 4242 4242 4242"
-                          />
-                          <div className="grid grid-cols-2 gap-4">
-                            <input
-                              type="text"
-                              placeholder="MM/YY"
-                              className="w-full"
-                              defaultValue="12/25"
-                            />
-                            <input
-                              type="text"
-                              placeholder="CVC"
-                              className="w-full"
-                              defaultValue="123"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <button
-                          type="button"
-                          onClick={() => setStep('shipping')}
-                          className="flex-1 btn-secondary"
-                        >
-                          Back
-                        </button>
-                        <button type="submit" className="flex-1 btn-primary">
-                          Complete Order
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg p-8 card-shadow sticky top-24">
-                <h3 className="text-xl font-display font-bold text-forest-700 mb-6">
-                  Order Summary
-                </h3>
-
-                <div className="space-y-4 mb-8 max-h-64 overflow-y-auto">
-                  {items.map((item) => (
-                    <div
-                      key={item.product.id}
-                      className="flex justify-between pb-4 border-b border-cream-200"
-                    >
-                      <div>
-                        <p className="font-body font-600 text-forest-700 text-sm">
-                          {item.product.name}
-                        </p>
-                        <p className="text-xs text-charcoal/50">
-                          Qty: {item.quantity}
-                        </p>
-                      </div>
-                      <p className="font-body font-600 text-forest-700">
-                        ৳ {(item.product.price * item.quantity).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t border-cream-200 pt-6 space-y-3">
-                  <div className="flex justify-between text-charcoal/70 text-sm">
-                    <span>Subtotal</span>
-                    <span>৳ {subtotal.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-charcoal/70 text-sm">
-                    <span>Shipping</span>
-                    <span>{shipping === 0 ? 'Free' : `৳ ${shipping}`}</span>
-                  </div>
-                  <div className="flex justify-between text-charcoal/70 text-sm">
-                    <span>Tax (5%)</span>
-                    <span>৳ {tax.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between border-t border-cream-200 pt-3">
-                    <span className="font-display font-bold text-forest-700">
-                      Total
-                    </span>
-                    <span className="text-gold-400 font-display font-bold text-lg">
-                      ৳ {total.toLocaleString()}
-                    </span>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm font-body text-charcoal/70 bg-cream-100 rounded-xs p-4">
+                    1. Open {PAYMENT_LABELS[method]} and <strong>Send Money</strong> ৳{total.toLocaleString()} to{' '}
+                    <strong>{payNumber}</strong>.
+                    <br />
+                    2. Enter the number you paid from and the Transaction ID below.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <input
+                      required
+                      name="payerNumber"
+                      value={form.payerNumber}
+                      onChange={set}
+                      placeholder={`Your ${PAYMENT_LABELS[method]} number`}
+                      inputMode="tel"
+                      className={inputCls}
+                    />
+                    <input
+                      required
+                      name="transactionId"
+                      value={form.transactionId}
+                      onChange={set}
+                      placeholder="Transaction ID (TrxID)"
+                      className={inputCls}
+                    />
                   </div>
                 </div>
+              )}
+            </section>
+          </div>
+
+          <aside className="bg-white rounded-lg p-6 card-shadow h-fit">
+            <h2 className="text-xl font-display font-bold text-forest-700 mb-4">Your order</h2>
+            <div className="space-y-3 mb-5 border-b border-cream-200 pb-5">
+              {items.map((item) => (
+                <div key={item.product.id} className="flex justify-between text-sm font-body">
+                  <span>
+                    {item.product.name} × {item.quantity}
+                    {item.product.luckyDiscount ? ' 🍀' : ''}
+                  </span>
+                  <span>৳ {(item.product.price * item.quantity).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2 text-sm font-body text-charcoal/70 mb-5">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>৳ {subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span>{shipping === 0 ? 'Free' : `৳ ${shipping}`}</span>
+              </div>
+              <div className="flex justify-between text-lg font-display font-bold text-forest-700 pt-2 border-t border-cream-200">
+                <span>Total</span>
+                <span>৳ {total.toLocaleString()}</span>
               </div>
             </div>
-          </div>
-        )}
+            {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+            <button disabled={busy} className="btn-primary w-full disabled:opacity-60">
+              {busy ? 'Placing order…' : method === 'cod' ? 'Place order (we will call you)' : 'Place order'}
+            </button>
+          </aside>
+        </form>
       </div>
     </div>
   );

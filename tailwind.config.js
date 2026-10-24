@@ -32,6 +32,7 @@ module.exports = {
           900: '#3a3430',
         },
         gold: {
+          DEFAULT: '#d4a574',
           50: '#faf6f1',
           100: '#f3eadc',
           200: '#e7d5b8',
@@ -43,6 +44,15 @@ module.exports = {
           800: '#5a472b',
           900: '#3d311e',
         },
+        sage: {
+          50: '#f1f6f1',
+          100: '#e1ebe2',
+          200: '#bfd2c2',
+          300: '#93b098',
+          400: '#6b8e6f',
+          500: '#587a5c',
+          600: '#476048',
+        },
         terracotta: '#c77a5a',
         blush: '#d8b8b0',
         charcoal: '#2a2a2a',
@@ -51,6 +61,11 @@ module.exports = {
         display: ['Playfair Display', 'serif'],
         body: ['Inter', 'system-ui', 'sans-serif'],
         accent: ['Cormorant Garamond', 'serif'],
+      },
+      fontWeight: {
+        500: '500',
+        600: '600',
+        700: '700',
       },
       fontSize: {
         'display-xl': ['56px', { lineHeight: '1.2', letterSpacing: '0.025em' }],
