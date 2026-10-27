@@ -5,6 +5,7 @@ import {
   BKASH_NUMBER,
   NAGAD_NUMBER,
   PAYMENT_LABELS,
+  PAYMENT_METHODS,
   PaymentMethod,
   shippingFor,
 } from '@/lib/shop-config';
@@ -137,8 +138,8 @@ export default function CheckoutPage() {
 
             <section className="bg-white rounded-lg p-6 card-shadow">
               <h2 className="text-xl font-display font-bold text-forest-700 mb-4">Payment</h2>
-              <div className="grid sm:grid-cols-3 gap-3 mb-5">
-                {(['bkash', 'nagad', 'cod'] as const).map((m) => (
+              <div className={`grid gap-3 mb-5 ${PAYMENT_METHODS.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+                {PAYMENT_METHODS.map((m) => (
                   <label
                     key={m}
                     className={`cursor-pointer border rounded-xs px-4 py-3 text-center font-body font-600 ${
@@ -160,7 +161,7 @@ export default function CheckoutPage() {
                 <div className="space-y-4">
                   <p className="text-sm font-body text-charcoal/70 bg-cream-100 rounded-xs p-4">
                     1. Open {PAYMENT_LABELS[method]} and <strong>Send Money</strong> ৳{total.toLocaleString()} to{' '}
-                    <strong>{payNumber}</strong>.
+                    <strong>{payNumber}</strong> (a personal account, so choose Send Money, not Payment).
                     <br />
                     2. Enter the number you paid from and the Transaction ID below.
                   </p>

@@ -1,11 +1,12 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 import { PaymentMethod } from '@/lib/shop-config';
 
 /**
- * Simple file-based order storage (data/orders.json, gitignored).
- * Works on your own computer / a normal server. It will NOT persist on Vercel
- * (read-only disk) — move to a database before deploying there.
+ * Order storage. With SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY set (always on Vercel), orders go to the
+ * Supabase `orders` table (supabase/migrations). Without them, they go to data/orders.json (gitignored),
+ * which is for local development only: Vercel's disk does not keep files.
  */
 
 export type OrderStatus =
@@ -43,9 +44,69 @@ export interface Order {
   adminNote?: string;
 }
 
+// Server-only: the service key bypasses row level security, so it must never reach the browser.
+const db =
+  process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+    : null;
+
+type OrderRow = {
+  order_number: string;
+  created_at: string;
+  status: OrderStatus;
+  payment_method: PaymentMethod;
+  transaction_id: string | null;
+  payer_number: string | null;
+  customer: Order['customer'];
+  items: OrderItem[];
+  subtotal: number;
+  shipping: number;
+  total: number;
+  admin_note: string | null;
+};
+
+export function toRow(o: Order): OrderRow {
+  return {
+    order_number: o.orderNumber,
+    created_at: o.createdAt,
+    status: o.status,
+    payment_method: o.paymentMethod,
+    transaction_id: o.transactionId ?? null,
+    payer_number: o.payerNumber ?? null,
+    customer: o.customer,
+    items: o.items,
+    subtotal: o.subtotal,
+    shipping: o.shipping,
+    total: o.total,
+    admin_note: o.adminNote ?? null,
+  };
+}
+
+export function fromRow(r: OrderRow): Order {
+  return {
+    orderNumber: r.order_number,
+    createdAt: r.created_at,
+    status: r.status,
+    paymentMethod: r.payment_method,
+    transactionId: r.transaction_id ?? undefined,
+    payerNumber: r.payer_number ?? undefined,
+    customer: r.customer,
+    items: r.items,
+    subtotal: r.subtotal,
+    shipping: r.shipping,
+    total: r.total,
+    adminNote: r.admin_note ?? undefined,
+  };
+}
+
 const FILE = path.join(process.cwd(), 'data', 'orders.json');
 
 export async function readOrders(): Promise<Order[]> {
+  if (db) {
+    const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data as OrderRow[]).map(fromRow);
+  }
   try {
     return JSON.parse(await fs.readFile(FILE, 'utf8')) as Order[];
   } catch {
@@ -59,12 +120,23 @@ async function writeOrders(orders: Order[]) {
 }
 
 export async function addOrder(order: Order) {
+  if (db) {
+    const { error } = await db.from('orders').insert(toRow(order));
+    if (error) throw error;
+    return;
+  }
   const orders = await readOrders();
   orders.unshift(order);
   await writeOrders(orders);
 }
 
 export async function updateOrder(orderNumber: string, patch: Partial<Pick<Order, 'status' | 'adminNote'>>) {
+  if (db) {
+    const row = { ...(patch.status ? { status: patch.status } : {}), ...(patch.adminNote !== undefined ? { admin_note: patch.adminNote } : {}) };
+    const { data, error } = await db.from('orders').update(row).eq('order_number', orderNumber).select().maybeSingle();
+    if (error) throw error;
+    return data ? fromRow(data as OrderRow) : null;
+  }
   const orders = await readOrders();
   const o = orders.find((x) => x.orderNumber === orderNumber);
   if (!o) return null;

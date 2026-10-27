@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getProductById } from '@/lib/dummy-products';
 import { LUCKY_DISCOUNT } from '@/lib/lucky-tree';
 import { addOrder, newOrderNumber, Order } from '@/lib/orders';
-import { shippingFor } from '@/lib/shop-config';
+import { PAYMENT_METHODS, shippingFor } from '@/lib/shop-config';
 
 const schema = z
   .object({
@@ -20,6 +20,10 @@ const schema = z
       .array(z.object({ id: z.string(), quantity: z.number().int().min(1).max(10) }))
       .min(1)
       .max(40),
+  })
+  .refine((d) => PAYMENT_METHODS.includes(d.paymentMethod), {
+    message: 'That payment method is not available',
+    path: ['paymentMethod'],
   })
   .refine((d) => d.paymentMethod === 'cod' || (d.transactionId && d.transactionId.length >= 6), {
     message: 'Please enter the bKash/Nagad transaction ID',

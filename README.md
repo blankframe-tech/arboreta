@@ -110,6 +110,14 @@ arboreta/
 
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Deploy (Vercel + Supabase)
+
+Orders are stored in Supabase when `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set, otherwise in `data/orders.json` (local only; Vercel does not keep files).
+
+1. Create a Supabase project, then apply the migration: `supabase link --project-ref <ref>` and `supabase db push` (or paste `supabase/migrations/*_orders.sql` into the SQL editor).
+2. `vercel link`, then add `ADMIN_KEY`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` with `vercel env add <NAME>` (Production and Preview).
+3. `vercel` deploys a preview, `vercel --prod` deploys production.
+
 ---
 
 ## 📝 Key Features (MVP)

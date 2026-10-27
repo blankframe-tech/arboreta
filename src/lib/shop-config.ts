@@ -3,9 +3,12 @@
  * with your real numbers before going live.
  */
 
-/** Your bKash / Nagad PERSONAL or MERCHANT numbers where customers send money. */
-export const BKASH_NUMBER = '01XXXXXXXXX';
-export const NAGAD_NUMBER = '01XXXXXXXXX';
+/**
+ * Numbers customers send money to. Both are PERSONAL accounts, so customers use "Send Money"
+ * (not "Payment" / merchant pay). Leave a number '' to hide that method at checkout.
+ */
+export const BKASH_NUMBER = '01535836896';
+export const NAGAD_NUMBER = ''; // not given yet: Nagad stays hidden until the owner confirms a number
 
 /** Delivery charge (৳). Free delivery above FREE_SHIPPING_OVER. Adjust after you talk to the nurseries. */
 export const SHIPPING_CHARGE = 120;
@@ -16,6 +19,11 @@ export function shippingFor(subtotal: number) {
 }
 
 export type PaymentMethod = 'bkash' | 'nagad' | 'cod';
+
+/** Methods offered at checkout: a mobile wallet only shows when its number is set. */
+export const PAYMENT_METHODS: PaymentMethod[] = (['bkash', 'nagad', 'cod'] as const).filter(
+  (m) => m === 'cod' || (m === 'bkash' ? BKASH_NUMBER : NAGAD_NUMBER),
+);
 
 export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   bkash: 'bKash',
