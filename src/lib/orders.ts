@@ -50,6 +50,11 @@ const db =
     ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
     : null;
 
+// Vercel's disk does not keep files, so the JSON fallback would lose every order there: fail at startup instead.
+if (process.env.VERCEL && !db) {
+  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set on Vercel; orders cannot be saved without them.');
+}
+
 type OrderRow = {
   order_number: string;
   created_at: string;
