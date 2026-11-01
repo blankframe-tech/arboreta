@@ -37,6 +37,24 @@ const LIGHT_ORDER: LightNeeds[] = ['low', 'medium', 'bright'];
 const WATER_ORDER: WaterRhythm[] = ['often', 'weekly', 'rarely'];
 const RARITY_BONUS = { common: 0, rare: 0.1, 'ultra-rare': 0.2 } as const;
 
+/**
+ * Server-side check for cart lines whose id ends in `:lucky` (the browser can send any id).
+ * A lucky line must be a plant the finder can suggest, one unit, once per order. Returns an error or null.
+ */
+export function luckyLineError(lines: Array<{ id: string; quantity: number }>): string | null {
+  const seen = new Set<string>();
+  for (const line of lines) {
+    if (!line.id.endsWith(':lucky')) continue;
+    const id = line.id.split(':')[0];
+    const p = DUMMY_PRODUCTS.find((x) => x.id === id);
+    if (!p || !p.available || !PLANT_CATEGORIES.includes(p.category)) return 'That item cannot get the Lucky Tree discount';
+    if (line.quantity !== 1) return 'The Lucky Tree discount is for one plant';
+    if (seen.has(id)) return 'The Lucky Tree discount is for one plant';
+    seen.add(id);
+  }
+  return null;
+}
+
 function waterRhythmOf(f: WateringFrequency): WaterRhythm {
   if (f === 'daily' || f === '2-3x week') return 'often';
   if (f === 'weekly') return 'weekly';
