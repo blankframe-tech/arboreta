@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getProductById } from '@/lib/dummy-products';
-import { LUCKY_DISCOUNT } from '@/lib/lucky-tree';
+import { LUCKY_DISCOUNT, luckyLineError } from '@/lib/lucky-tree';
 import { addOrder, newOrderNumber, Order } from '@/lib/orders';
 import { PAYMENT_METHODS, shippingFor } from '@/lib/shop-config';
 
@@ -42,6 +42,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid details' }, { status: 400 });
   }
   const d = parsed.data;
+  const luckyError = luckyLineError(d.items);
+  if (luckyError) return NextResponse.json({ error: luckyError }, { status: 400 });
 
   // Prices are recomputed here from the catalog — never trust the browser's numbers.
   const items: Order['items'] = [];

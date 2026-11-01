@@ -70,7 +70,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } else {
       setItems((prev) =>
         prev.map((item) =>
-          item.product.id === productId ? { ...item, quantity } : item
+          // A lucky item is one discounted unit; the server rejects more.
+          item.product.id === productId ? { ...item, quantity: item.product.luckyDiscount ? 1 : quantity } : item
         )
       );
     }
