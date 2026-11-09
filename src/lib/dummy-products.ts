@@ -1,333 +1,291 @@
 import { Product } from '@/types/product';
 
+/**
+ * PRODUCT CATALOG (temporary — will move to a database later).
+ *
+ * Prices are retail prices in BDT, set from what Bangladeshi online nurseries list today
+ * (Oct 2026 research). They are STARTING points — adjust to your own margin.
+ *
+ * Dropshipping fields per product:
+ *   nurseryId  -> which partner nursery ships it (ids live in src/lib/nurseries.ts)
+ *   available  -> set to false when the nursery does not have it; the site shows "Currently unavailable"
+ *
+ * Seasons are general guidance for Bangladesh — confirm with your nurseries.
+ * Photos live in /public/plants and are credited in src/lib/image-credits.ts.
+ */
+
+const D = new Date('2026-10-01');
+
+type Input = Omit<Product, 'id' | 'imageUrls' | 'available' | 'createdAt' | 'updatedAt' | 'humidityPreference' | 'petSafe' | 'placement'> &
+  Partial<Pick<Product, 'humidityPreference' | 'petSafe' | 'placement' | 'available' | 'imageUrls'>>;
+
+let n = 0;
+function mk(p: Input): Product {
+  n += 1;
+  return {
+    id: String(n),
+    humidityPreference: 'medium',
+    petSafe: false,
+    placement: ['indoor'],
+    imageUrls: [`/plants/${p.slug}.jpg`],
+    available: true,
+    createdAt: D,
+    updatedAt: new Date(D.getTime() + n * 86400000),
+    ...p,
+  };
+}
+
+const MONSOON = { months: [6, 7, 8, 9], label: 'Best planted in the monsoon (June–September)' };
+const WINTER_FLOWER = { months: [10, 11, 12, 1, 2], label: 'Winter flower — seedlings available October to February' };
+
 export const DUMMY_PRODUCTS: Product[] = [
-  // Flower Trees
-  {
-    id: '1',
-    name: 'Monstera Deliciosa',
-    slug: 'monstera-deliciosa',
-    category: 'flowers',
-    price: 45000,
-    description:
-      'A stunning tropical vining philodendron with distinctive fenestration. This rare variegated specimen is a collector\'s favorite, perfect for bright indirect light.',
-    careGuide: '## Care Guide\n\n- **Light**: Bright, indirect light\n- **Water**: Water when soil is 50% dry\n- **Humidity**: 60-80% preferred\n- **Temperature**: 65-75°F\n- **Propagation**: Readily propagates from stem cuttings',
-    latinName: 'Rhaphidophora deliciosa',
-    rarity: 'rare',
-    petSafe: false,
-    lightNeeds: 'bright',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'high',
-    toxicityNotes: 'Mildly toxic to cats and dogs',
-    imageUrls: ['https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=500&h=500&fit=crop'],
-    stockQuantity: 3,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Anthurium Clarinervium',
-    slug: 'anthurium-clarinervium',
-    category: 'flowers',
-    price: 16000,
-    description:
-      'Stunning dark burgundy leaves with brilliant white veining. A dramatic addition to any collection.',
-    careGuide:
-      '- Light: Medium to bright indirect\n- Water: Keep soil moist but not soggy\n- Humidity: 70%+ ideal\n- Temperature: 65-80°F',
-    latinName: 'Anthurium clarinervium',
-    rarity: 'rare',
-    petSafe: false,
-    lightNeeds: 'medium',
-    wateringFrequency: '2-3x week',
-    humidityPreference: 'high',
-    imageUrls: ['https://images.unsplash.com/photo-1598187306259-e51c96a41a35?w=500&h=500&fit=crop'],
-    stockQuantity: 5,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Philodendron Pink Princess',
-    slug: 'philodendron-pink-princess',
-    category: 'flowers',
-    price: 22000,
-    description:
-      'Deep green heart-shaped leaves with pink variegation. A contemporary favorite among plant collectors.',
-    careGuide: '- Light: Bright, indirect light enhances pink coloration\n- Water: Weekly watering\n- Humidity: 50%+\n- Temperature: 65-75°F',
-    latinName: 'Philodendron erubescens',
-    rarity: 'rare',
-    petSafe: false,
-    lightNeeds: 'bright',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'medium',
-    imageUrls: ['https://images.unsplash.com/photo-1611065469378-a06c9fe1f5a2?w=500&h=500&fit=crop'],
-    stockQuantity: 4,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  // ───────────── Indoor & Office Plants ─────────────
+  mk({
+    name: 'Snake Plant', bnName: 'স্নেক প্ল্যান্ট', slug: 'snake-plant', category: 'office', price: 390, size: '6-inch pot',
+    latinName: 'Dracaena trifasciata', rarity: 'common', lightNeeds: 'low', wateringFrequency: 'monthly', humidityPreference: 'low',
+    description: 'Upright, sword-shaped leaves that look sharp in any corner. One of the toughest houseplants there is — it shrugs off low light and forgotten waterings.',
+    careGuide: '- Light: Low to bright indirect light\n- Water: Let the soil dry out fully; every 2–3 weeks is plenty\n- Soil: Fast-draining mix, pot with a drainage hole\n- Tip: Overwatering is the only real way to lose it',
+    toxicityNotes: 'Mildly toxic to cats and dogs if chewed.',
+  }),
+  mk({
+    name: 'ZZ Plant', bnName: 'জেডজেড প্ল্যান্ট', slug: 'zz-plant', category: 'office', price: 590, size: '6-inch pot',
+    latinName: 'Zamioculcas zamiifolia', rarity: 'common', lightNeeds: 'low', wateringFrequency: 'monthly', humidityPreference: 'low',
+    description: 'Glossy, deep-green leaves on thick stems. Stores water in its roots, so it forgives busy weeks and dim rooms.',
+    careGuide: '- Light: Low to medium indirect light\n- Water: Only when the soil is completely dry\n- Soil: Well-draining potting mix\n- Tip: Yellowing leaves usually mean too much water',
+    toxicityNotes: 'Toxic if eaten — keep away from pets and small children.',
+  }),
+  mk({
+    name: 'Money Plant (Golden Pothos)', bnName: 'মানি প্ল্যান্ট', slug: 'golden-pothos', category: 'office', price: 200, size: '5-inch pot',
+    latinName: 'Epipremnum aureum', rarity: 'common', lightNeeds: 'low', wateringFrequency: 'weekly', humidityPreference: 'medium',
+    description: 'The classic trailing vine that grows in soil or in a jar of water. Hang it, train it up a pole, or let it spill from a shelf.',
+    careGuide: '- Light: Low to bright indirect light (avoid hot direct sun)\n- Water: When the top 2–3 cm of soil is dry; or change jar water weekly\n- Tip: Trim long vines to keep it bushy',
+    toxicityNotes: 'Toxic to cats and dogs if chewed.',
+  }),
+  mk({
+    name: 'Peace Lily', bnName: 'পিস লিলি', slug: 'peace-lily', category: 'office', price: 490, size: '6-inch pot',
+    latinName: 'Spathiphyllum wallisii', rarity: 'common', lightNeeds: 'medium', wateringFrequency: 'weekly', humidityPreference: 'high',
+    description: 'Dark green leaves and elegant white blooms. It droops dramatically when thirsty, then bounces back after a drink.',
+    careGuide: '- Light: Bright, indirect light; no harsh sun\n- Water: Keep the soil lightly moist, never soggy\n- Humidity: Likes humid air — mist or group with other plants\n- Tip: Wipe the leaves occasionally to keep them glossy',
+    toxicityNotes: 'Irritating to pets and people if chewed.',
+  }),
+  mk({
+    name: 'Lucky Bamboo', bnName: 'লাকি বাম্বু', slug: 'lucky-bamboo', category: 'office', price: 250, size: 'Stalks in vase',
+    latinName: 'Dracaena sanderiana', rarity: 'common', lightNeeds: 'low', wateringFrequency: 'weekly', humidityPreference: 'medium',
+    description: 'Graceful green stalks that live happily in water. A popular desk and gift plant that asks for almost nothing.',
+    careGuide: '- Light: Low to medium indirect light\n- Water: Keep roots covered; change the water every week\n- Water type: Filtered or standing water is best\n- Tip: Yellow stalks mean it is getting too much sun or the water is stale',
+    toxicityNotes: 'Toxic to cats and dogs if chewed.',
+  }),
+  mk({
+    name: 'Monstera Deliciosa', bnName: 'মনস্টেরা', slug: 'monstera-deliciosa', category: 'office', price: 990, size: '8-inch pot',
+    latinName: 'Monstera deliciosa', rarity: 'rare', lightNeeds: 'medium', wateringFrequency: 'weekly', humidityPreference: 'high',
+    description: 'The plant everyone photographs. Big, glossy leaves develop their famous splits as it matures. Bold enough to be the centre of a room.',
+    careGuide: '- Light: Bright, indirect light\n- Water: When the top 2–3 cm of soil is dry\n- Support: Give it a moss pole as it climbs\n- Tip: Splits and holes come with maturity and good light',
+    toxicityNotes: 'Mildly toxic to cats and dogs.',
+  }),
+  mk({
+    name: 'Rubber Plant', bnName: 'রাবার প্ল্যান্ট', slug: 'rubber-plant', category: 'office', price: 690, size: '8-inch pot',
+    latinName: 'Ficus elastica', rarity: 'common', lightNeeds: 'medium', wateringFrequency: 'weekly', humidityPreference: 'medium', placement: ['indoor', 'outdoor'],
+    description: 'Thick, glossy leaves on a sturdy stem. Grows into a statement plant and tolerates ordinary home conditions well.',
+    careGuide: '- Light: Bright, indirect light\n- Water: When the top few cm of soil are dry\n- Tip: Wipe dust off the leaves; do not move it often',
+    toxicityNotes: 'The milky sap can irritate skin and is mildly toxic to pets.',
+  }),
+  mk({
+    name: 'Aglaonema (Red Chinese Evergreen)', bnName: 'অ্যাগ্লাওনিমা', slug: 'aglaonema', category: 'office', price: 790, size: '6-inch pot',
+    latinName: 'Aglaonema', rarity: 'rare', lightNeeds: 'low', wateringFrequency: 'weekly', humidityPreference: 'medium',
+    description: 'Leaves splashed with pink and red make this one of the prettiest low-light plants. Easy to live with and rarely fussy.',
+    careGuide: '- Light: Low to medium indirect light; colours are best in brighter shade\n- Water: When the top of the soil is dry\n- Tip: Keep away from cold air-conditioner drafts',
+    toxicityNotes: 'Irritating to pets and people if chewed.',
+  }),
+  mk({
+    name: 'Areca Palm', bnName: 'এরিকা পাম', slug: 'areca-palm', category: 'office', price: 790, size: '10-inch pot',
+    latinName: 'Dypsis lutescens', rarity: 'common', lightNeeds: 'medium', wateringFrequency: 'weekly', humidityPreference: 'high', petSafe: true, placement: ['indoor', 'outdoor'],
+    description: 'Feathery, arching fronds bring a tropical feel to living rooms and offices — and it is safe around pets.',
+    careGuide: '- Light: Bright, indirect light\n- Water: Keep evenly moist, not waterlogged\n- Tip: Brown tips mean dry air or irregular watering',
+  }),
+  mk({
+    name: 'Anthurium', bnName: 'অ্যান্থুরিয়াম', slug: 'anthurium', category: 'office', price: 990, size: '6-inch pot',
+    latinName: 'Anthurium andraeanum', rarity: 'rare', lightNeeds: 'medium', wateringFrequency: 'weekly', humidityPreference: 'high',
+    description: 'Glossy, heart-shaped red flowers that last for weeks. A reliable indoor bloomer in bright, humid rooms.',
+    careGuide: '- Light: Bright, indirect light\n- Water: When the top of the soil feels dry; avoid soggy roots\n- Humidity: Enjoys humid air\n- Tip: Remove spent flowers to encourage new ones',
+    toxicityNotes: 'Irritating to pets and people if chewed.',
+  }),
+  mk({
+    name: 'Bird of Paradise', bnName: 'বার্ড অব প্যারাডাইস', slug: 'bird-of-paradise', category: 'office', price: 490, size: '8-inch pot',
+    latinName: 'Strelitzia reginae', rarity: 'rare', lightNeeds: 'bright', wateringFrequency: 'weekly', humidityPreference: 'medium', placement: ['indoor', 'outdoor'],
+    description: 'Large paddle leaves and, with enough light, the striking orange-and-blue flower it is named for.',
+    careGuide: '- Light: Bright light, some direct sun is welcome\n- Water: When the top few cm of soil are dry\n- Tip: Flowers need a mature plant and plenty of light',
+    toxicityNotes: 'Seeds and pods are mildly toxic if eaten.',
+  }),
 
-  // Bonsai
-  {
-    id: '4',
-    name: 'Japanese Black Pine',
-    slug: 'japanese-black-pine-bonsai',
-    category: 'bonsai',
-    price: 120000,
-    description:
-      'A 40-year-old exhibition-ready black pine bonsai. Hand-trained by a master craftsperson. This is an investment piece.',
-    careGuide:
-      '- Display outdoors most of the year\n- Water daily during growing season\n- Prune new growth to maintain shape\n- Repot every 2-3 years\n- Expertise required',
-    latinName: 'Pinus thunbergii',
-    rarity: 'ultra-rare',
-    petSafe: true,
-    lightNeeds: 'bright',
-    wateringFrequency: 'daily',
-    humidityPreference: 'medium',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '5',
-    name: 'Ficus Retusa Bonsai',
-    slug: 'ficus-retusa-bonsai',
-    category: 'bonsai',
-    price: 35000,
-    description:
-      'Elegant Ficus bonsai with aerial roots and naturally compact growth. Perfect for intermediate bonsai enthusiasts.',
-    careGuide:
-      '- Light: Bright, indirect light\n- Water: Keep soil moist\n- Temperature: 60-75°F\n- Humidity: 50%+\n- Prune regularly to maintain shape',
-    latinName: 'Ficus retusa',
-    rarity: 'rare',
-    petSafe: false,
-    lightNeeds: 'bright',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'high',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 2,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  // ───────────── Flowering Plants ─────────────
+  mk({
+    name: 'Hibiscus', bnName: 'জবা', slug: 'hibiscus', category: 'flowers', price: 250, size: 'Polybag, ~1–1.5 ft',
+    latinName: 'Hibiscus rosa-sinensis', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', humidityPreference: 'medium', petSafe: true, placement: ['outdoor'],
+    season: MONSOON,
+    description: 'Large, showy flowers on a hardy shrub that loves Bangladeshi weather. Blooms almost year-round in good sun.',
+    careGuide: '- Light: Full sun (at least 5–6 hours)\n- Water: Regularly in hot weather; let the top soil dry between waterings\n- Feeding: A light feed every few weeks encourages flowers\n- Tip: Prune lightly after flowering to keep it bushy',
+  }),
+  mk({
+    name: 'Adenium (Desert Rose)', bnName: 'অ্যাডেনিয়াম', slug: 'adenium', category: 'flowers', price: 390, size: '5-inch pot',
+    latinName: 'Adenium obesum', rarity: 'rare', lightNeeds: 'bright', wateringFrequency: 'weekly', humidityPreference: 'low', placement: ['outdoor'],
+    season: { months: [3, 4, 5, 6, 7, 8, 9], label: 'Best planted in the warm months (March–September)' },
+    description: 'A swollen, sculptural trunk topped with bright trumpet flowers. Loves heat and sun and looks wonderful on a sunny balcony.',
+    careGuide: '- Light: Full sun\n- Water: Water well, then let the soil dry; keep drier in the cool season\n- Soil: Very well-draining mix\n- Tip: Never leave it standing in water — the trunk rots',
+    toxicityNotes: 'All parts are toxic — keep away from pets and children.',
+  }),
+  mk({
+    name: 'Rose', bnName: 'গোলাপ', slug: 'rose', category: 'flowers', price: 250, size: 'Polybag, ~1 ft',
+    latinName: 'Rosa', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', humidityPreference: 'medium', petSafe: true, placement: ['outdoor'],
+    season: { months: [10, 11, 12, 1], label: 'Best planted in the cool season (October–January)' },
+    description: 'Classic garden roses that bloom best in the cooler months. Choose a sunny spot and give them good soil.',
+    careGuide: '- Light: At least 5–6 hours of sun\n- Water: Regularly; avoid wetting the leaves in the evening\n- Feeding: Organic compost every few weeks\n- Tip: Remove spent blooms and prune lightly after the flowering season',
+  }),
+  mk({
+    name: 'Bougainvillea', bnName: 'বাগানবিলাস', slug: 'bougainvillea', category: 'flowers', price: 300, size: 'Polybag, ~1.5 ft',
+    latinName: 'Bougainvillea glabra', rarity: 'common', lightNeeds: 'bright', wateringFrequency: 'weekly', humidityPreference: 'low', petSafe: true, placement: ['outdoor'],
+    season: { months: [11, 12, 1, 2, 3], label: 'Blooms best in the dry, sunny months (November–March)' },
+    description: 'Sheets of papery pink, magenta or purple bracts on a tough climber. Thrives on sun, heat and a bit of neglect.',
+    careGuide: '- Light: Full sun — more sun, more flowers\n- Water: Let the soil dry between waterings; too much water means leaves, not flowers\n- Tip: Prune after a flush of blooms; mind the thorns',
+  }),
 
-  // Fruit Trees
-  {
-    id: '6',
-    name: 'Dragon Fruit Tree',
-    slug: 'dragon-fruit-tree',
-    category: 'fruit',
-    price: 18000,
-    description:
-      'Vibrant pink flowers and exotic magenta fruits. A showstopper in any garden. Edible, sweet fruit produced annually.',
-    careGuide:
-      '- Light: Full sun (6+ hours daily)\n- Water: Deep watering once weekly\n- Temperature: 50-90°F\n- Soil: Well-draining cactus mix\n- Fruiting: Year 2-3 after planting',
-    latinName: 'Hylocereus undatus',
-    rarity: 'rare',
-    petSafe: true,
-    lightNeeds: 'bright',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'low',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 6,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '7',
-    name: 'Mango Tree (Grafted)',
-    slug: 'mango-tree-grafted',
-    category: 'fruit',
-    price: 12000,
-    description:
-      'Grafted mango tree ready to produce in 1-2 years. Sweet, juicy fruits. Brings tropical abundance to warm climates.',
-    careGuide:
-      '- Light: Full sun (8+ hours)\n- Water: Regular watering, reduce in winter\n- Temperature: 70-85°F ideal\n- Soil: Rich, well-draining\n- Harvesting: May-July in most climates',
-    latinName: 'Mangifera indica',
-    rarity: 'common',
-    petSafe: true,
-    lightNeeds: 'bright',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'medium',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 8,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  // ───────────── Seasonal Flowers ─────────────
+  mk({
+    name: 'Marigold Seedlings', bnName: 'গাঁদা চারা', slug: 'marigold', category: 'seasonal', price: 150, size: 'Set of 5 seedlings',
+    latinName: 'Tagetes erecta', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', placement: ['outdoor'], season: WINTER_FLOWER,
+    description: 'Cheerful orange and yellow pom-pom flowers — a winter garden favourite that is easy to grow in pots or beds.',
+    careGuide: '- Light: Full sun\n- Water: Keep the soil lightly moist; avoid waterlogging\n- Tip: Pinch the tips when young for a bushier plant with more flowers',
+    toxicityNotes: 'May irritate pets if eaten in quantity.',
+  }),
+  mk({
+    name: 'Petunia', bnName: 'পিটুনিয়া', slug: 'petunia', category: 'seasonal', price: 120, size: '4-inch pot',
+    latinName: 'Petunia × hybrida', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', petSafe: true, placement: ['outdoor'], season: WINTER_FLOWER,
+    description: 'Trumpet flowers in pink, purple and white that fill balcony railings and hanging baskets through the cool season.',
+    careGuide: '- Light: Full sun to light shade\n- Water: Regularly; do not let the pot dry out completely\n- Tip: Pinch off faded flowers to keep it blooming',
+  }),
+  mk({
+    name: 'Dahlia', bnName: 'ডালিয়া', slug: 'dahlia', category: 'seasonal', price: 150, size: 'Polybag',
+    latinName: 'Dahlia', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', placement: ['outdoor'], season: WINTER_FLOWER,
+    description: 'Big, layered blooms in rich reds, pinks and yellows. A showpiece for the winter garden.',
+    careGuide: '- Light: Full sun\n- Water: Deeply, but let the top soil dry between waterings\n- Tip: Support tall stems with a stake; pinch for more branches',
+    toxicityNotes: 'Mildly toxic to pets if eaten.',
+  }),
+  mk({
+    name: 'Chrysanthemum', bnName: 'চন্দ্রমল্লিকা', slug: 'chrysanthemum', category: 'seasonal', price: 200, size: '5-inch pot',
+    latinName: 'Chrysanthemum × morifolium', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', placement: ['outdoor'], season: WINTER_FLOWER,
+    description: 'Dense mounds of flowers in warm autumn shades, flowering as the weather cools.',
+    careGuide: '- Light: Bright light, several hours of sun\n- Water: Keep evenly moist, not soggy\n- Tip: Pinch young shoots for a compact, flower-packed plant',
+    toxicityNotes: 'Toxic to pets if eaten.',
+  }),
 
-  // Office Plants
-  {
-    id: '8',
-    name: 'Nepenthes Rajah (Pitcher Plant)',
-    slug: 'nepenthes-rajah',
-    category: 'office',
-    price: 28000,
-    description:
-      'Spectacular carnivorous pitcher plant with intricate, exotic pitchers. For advanced collectors. A conversation piece.',
-    careGuide:
-      '- Light: Bright, indirect\n- Water: Distilled water only\n- Humidity: 80%+ (terrarium recommended)\n- Temperature: 65-75°F\n- Feeding: Insects if outdoors',
-    latinName: 'Nepenthes rajah',
-    rarity: 'ultra-rare',
-    petSafe: false,
-    lightNeeds: 'bright',
-    wateringFrequency: 'daily',
-    humidityPreference: 'high',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '9',
-    name: 'Lucky Bamboo (Dracaena)',
-    slug: 'lucky-bamboo',
-    category: 'office',
-    price: 3200,
-    description:
-      'Classic Feng Shui favorite. Air-purifying, low-maintenance, brings positive energy to any space. Easy to propagate.',
-    careGuide:
-      '- Light: Low to medium light tolerant\n- Water: Keep soil moist or use water propagation\n- Temperature: 60-75°F\n- Humidity: Average room humidity\n- Maintenance: Minimal',
-    latinName: 'Dracaena sanderiana',
-    rarity: 'common',
-    petSafe: true,
-    lightNeeds: 'low',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'medium',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 12,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '10',
-    name: 'Money Tree (Pachira aquatica)',
-    slug: 'money-tree',
-    category: 'office',
-    price: 5600,
-    description:
-      'Braided trunk variety. Symbols prosperity and good fortune. Attractive glossy green leaves, compact growth.',
-    careGuide:
-      '- Light: Bright, indirect light\n- Water: Allow soil to dry between watering\n- Temperature: 65-75°F\n- Humidity: 50%+\n- Rotate regularly for even growth',
-    latinName: 'Pachira aquatica',
-    rarity: 'common',
-    petSafe: true,
-    lightNeeds: 'bright',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'medium',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 10,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  // ───────────── Bonsais ─────────────
+  mk({
+    name: 'Ficus Bonsai (China Bot)', bnName: 'ফাইকাস বনসাই', slug: 'ficus-bonsai', category: 'bonsai', price: 1200, size: 'Ceramic pot, ~1 ft',
+    latinName: 'Ficus microcarpa', rarity: 'rare', lightNeeds: 'medium', wateringFrequency: '2-3x week', humidityPreference: 'medium', placement: ['indoor', 'outdoor'],
+    description: 'A thick, sculptural trunk with a small leafy crown. One of the most forgiving trees for first-time bonsai owners.',
+    careGuide: '- Light: Bright light; some morning sun is fine\n- Water: When the top of the soil is dry — small pots dry fast\n- Pruning: Trim new shoots regularly to keep the shape\n- Tip: Do not let it sit in water',
+    toxicityNotes: 'Sap can irritate; mildly toxic to pets.',
+  }),
+  mk({
+    name: 'Juniper Bonsai', bnName: 'জুনিপার বনসাই', slug: 'juniper-bonsai', category: 'bonsai', price: 590, size: 'Pot, ~1 ft',
+    latinName: 'Juniperus', rarity: 'rare', lightNeeds: 'bright', wateringFrequency: '2-3x week', humidityPreference: 'low', placement: ['outdoor'],
+    description: 'Fine blue-green foliage on a miniature, windswept form. Best kept outdoors in good light.',
+    careGuide: '- Light: Full sun to bright light\n- Water: When the soil surface begins to dry; never leave in standing water\n- Tip: Keep it outdoors — junipers do not do well in dim rooms',
+    toxicityNotes: 'Berries and foliage are mildly toxic to pets.',
+  }),
 
-  // Seasonal
-  {
-    id: '11',
-    name: 'Corpse Flower',
-    slug: 'corpse-flower',
-    category: 'seasonal',
-    price: 35000,
-    description:
-      'Amorphophallus titanium. Blooms once every 7 years with an unmistakable (pungent) scent. A rare botanical marvel for serious collectors.',
-    careGuide:
-      '- Light: Bright, indirect\n- Water: Keep soil moist during growing season\n- Temperature: 70-80°F\n- Humidity: 70%+\n- Dormancy: 4-6 months yearly\n- Note: Highly specialized cultivation required',
-    latinName: 'Amorphophallus titanium',
-    rarity: 'ultra-rare',
-    petSafe: true,
-    lightNeeds: 'bright',
-    wateringFrequency: 'daily',
-    humidityPreference: 'high',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  // ───────────── Fruit Trees ─────────────
+  mk({
+    name: 'Red Dragon Fruit', bnName: 'রেড ড্রাগন ফল', slug: 'dragon-fruit', category: 'fruit', price: 250, size: 'Polybag cutting',
+    latinName: 'Hylocereus', rarity: 'common', lightNeeds: 'bright', wateringFrequency: 'weekly', humidityPreference: 'low', placement: ['outdoor'], season: MONSOON,
+    description: 'A climbing cactus that gives sweet, magenta-fleshed fruit. Needs a sturdy post or frame and plenty of sun — a rooftop favourite.',
+    careGuide: '- Light: Full sun\n- Water: Let the soil dry between waterings; avoid waterlogging\n- Support: Grow it on a pole or concrete post\n- Tip: Good drainage matters more than frequent watering',
+  }),
+  mk({
+    name: 'Mango Sapling (Grafted)', bnName: 'কলমের আম (আমপালী)', slug: 'mango', category: 'fruit', price: 200, size: 'Grafted, polybag',
+    latinName: 'Mangifera indica', rarity: 'common', lightNeeds: 'bright', wateringFrequency: 'weekly', humidityPreference: 'medium', placement: ['outdoor'], season: MONSOON,
+    description: 'A grafted mango sapling (Amrapali). Grafted plants fruit much sooner than seedlings. Needs open sun and space to grow.',
+    careGuide: '- Light: Full sun\n- Water: Regularly for the first year; established trees are drought-tolerant\n- Planting: Dig a generous pit and add compost; plant in the monsoon\n- Tip: Protect young saplings from strong wind with a stake',
+  }),
+  mk({
+    name: 'Seedless Lemon', bnName: 'বীজহীন লেবু', slug: 'lemon', category: 'fruit', price: 200, size: 'Grafted, polybag',
+    latinName: 'Citrus limon', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', humidityPreference: 'medium', placement: ['outdoor'], season: MONSOON,
+    description: 'A compact lemon that fruits well in a large pot, courtyard or rooftop. Fruits are juicy and nearly seedless.',
+    careGuide: '- Light: Full sun\n- Water: Regularly; let the top soil dry between waterings\n- Feeding: Organic compost or mustard-cake liquid every 3–4 weeks\n- Tip: Use a large pot with drainage holes',
+    toxicityNotes: 'Peel and leaves can upset pets if eaten.',
+  }),
+  mk({
+    name: 'Thai Guava', bnName: 'থাই পেয়ারা', slug: 'guava', category: 'fruit', price: 250, size: 'Grafted, polybag',
+    latinName: 'Psidium guajava', rarity: 'common', lightNeeds: 'bright', wateringFrequency: 'weekly', humidityPreference: 'medium', placement: ['outdoor'], season: MONSOON,
+    description: 'Large, crunchy guavas on a hardy, fast-fruiting tree. Does well in pots and in the ground.',
+    careGuide: '- Light: Full sun\n- Water: Weekly, more in dry spells\n- Tip: Prune to keep it compact; bag fruits to protect from insects',
+  }),
+  mk({
+    name: 'Kul (Jujube) Sapling', bnName: 'বল সুন্দরী কুল', slug: 'jujube-kul', category: 'fruit', price: 250, size: 'Grafted, polybag',
+    latinName: 'Ziziphus mauritiana', rarity: 'common', lightNeeds: 'bright', wateringFrequency: 'weekly', humidityPreference: 'low', placement: ['outdoor'], season: MONSOON,
+    description: 'A hardy, heavy-bearing fruit tree that gives crisp, sweet kul in the winter months. Easy and rewarding.',
+    careGuide: '- Light: Full sun\n- Water: Weekly while young; drought-tolerant once established\n- Tip: Prune after harvest to shape the tree',
+  }),
+  mk({
+    name: 'Rambutan Sapling', bnName: 'রামবুটান', slug: 'rambutan', category: 'fruit', price: 1600, size: 'Grafted, polybag',
+    latinName: 'Nephelium lappaceum', rarity: 'rare', lightNeeds: 'bright', wateringFrequency: '2-3x week', humidityPreference: 'high', placement: ['outdoor'], season: MONSOON,
+    description: 'A tropical fruit tree with hairy red fruits and sweet, translucent flesh. Likes warmth, humidity and rich, moist soil.',
+    careGuide: '- Light: Full sun to light shade\n- Water: Regularly; do not let it dry out\n- Soil: Rich in organic matter\n- Tip: Protect young plants from cold and strong wind',
+  }),
+  mk({
+    name: 'Jabuticaba', bnName: 'জাবুটিকাবা', slug: 'jabuticaba', category: 'fruit', price: 600, size: 'Polybag, ~1.5 ft',
+    latinName: 'Plinia cauliflora', rarity: 'rare', lightNeeds: 'bright', wateringFrequency: '2-3x week', humidityPreference: 'high', placement: ['outdoor'], season: MONSOON,
+    description: 'The “grape tree” — dark purple fruits grow straight on the trunk. A slow-growing curiosity for patient collectors.',
+    careGuide: '- Light: Full sun to light shade\n- Water: Keep the soil moist; it dislikes drying out\n- Soil: Slightly acidic, rich in compost\n- Tip: Slow-growing — a great pot plant for years',
+  }),
 
-  // Seeds
-  {
-    id: '12',
-    name: 'Heirloom Tomato Seeds',
-    slug: 'heirloom-tomato-seeds',
-    category: 'seeds',
-    price: 600,
-    description:
-      '50 seeds of organic, open-pollinated heirloom tomatoes. Flavor over volume. Non-GMO, sustainably sourced.',
-    careGuide:
-      '- Start indoors 6-8 weeks before last frost\n- Germination: 5-10 days at 70-75°F\n- Plant depth: ¼ inch\n- Transplant outdoors after danger of frost\n- Full sun required (6-8 hours)',
-    latinName: 'Solanum lycopersicum',
-    rarity: 'common',
-    petSafe: false,
-    lightNeeds: 'bright',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'medium',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 50,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '13',
-    name: 'Wildflower Seed Mix',
-    slug: 'wildflower-seed-mix',
-    category: 'seeds',
-    price: 1200,
-    description:
-      'Pollinator-friendly wildflower blend. 100+ species. Creates a vibrant, low-maintenance meadow garden. Supports bees and butterflies.',
-    careGuide:
-      '- Sow directly on prepared soil\n- Minimal water needed once established\n- Blooms: Spring through fall\n- Perennial varieties return yearly\n- Great for cottage gardens',
-    latinName: 'Mixed species',
-    rarity: 'common',
-    petSafe: true,
-    lightNeeds: 'bright',
-    wateringFrequency: 'monthly',
-    humidityPreference: 'medium',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 40,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  // ───────────── Seeds ─────────────
+  mk({
+    name: 'Tomato Seeds', bnName: 'টমেটো বীজ', slug: 'tomato-seeds', category: 'seeds', price: 50, size: 'Packet',
+    latinName: 'Solanum lycopersicum', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', placement: ['outdoor'],
+    season: { months: [10, 11], label: 'Sow October–November for the winter crop' },
+    description: 'A packet of tomato seeds for the winter vegetable season. Start in trays or small pots, then transplant to a sunny bed or large pot.',
+    careGuide: '- Sowing: Start in trays; transplant when seedlings are about 4 weeks old\n- Light: Full sun\n- Water: Evenly moist; avoid wetting the leaves late in the day\n- Tip: Support with stakes once the plant grows',
+  }),
+  mk({
+    name: 'Marigold Seeds', bnName: 'গাঁদা বীজ', slug: 'marigold-seeds', category: 'seeds', price: 40, size: 'Packet',
+    latinName: 'Tagetes erecta', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', placement: ['outdoor'],
+    season: { months: [9, 10, 11], label: 'Sow September–November' },
+    description: 'Easy winter flower seeds. Sow in trays or directly in pots and beds and enjoy weeks of orange and yellow blooms.',
+    careGuide: '- Sowing: Barely cover with fine soil\n- Light: Full sun\n- Water: Keep lightly moist until seedlings are established\n- Tip: Thin crowded seedlings for sturdier plants',
+  }),
+  mk({
+    name: 'Sunflower Seeds', bnName: 'সূর্যমুখী বীজ', slug: 'sunflower-seeds', category: 'seeds', price: 60, size: 'Packet',
+    latinName: 'Helianthus annuus', rarity: 'common', lightNeeds: 'bright', wateringFrequency: '2-3x week', petSafe: true, placement: ['outdoor'],
+    season: { months: [10, 11, 12], label: 'Sow October–December' },
+    description: 'Tall, sun-following flowers that are fun to grow with kids. Sow directly where they will bloom.',
+    careGuide: '- Sowing: About 2–3 cm deep, spaced well apart\n- Light: Full sun\n- Water: Regularly while young; deeply but less often later\n- Tip: Stake tall varieties in windy spots',
+  }),
 
-  // Fertilizers
-  {
-    id: '14',
-    name: 'Organic Seaweed Fertilizer',
-    slug: 'organic-seaweed-fertilizer',
-    category: 'fertilizers',
-    price: 2500,
-    description:
-      'Cold-pressed kelp-based organic fertilizer. 1kg. Slow-release nutrients, microbes, and growth hormones. Perfect for all plants.',
-    careGuide:
-      '- Apply every 2-4 weeks during growing season\n- Mix with water according to instructions\n- Suitable for all plant types\n- Certified organic\n- Improves soil structure over time',
-    latinName: 'N/A',
-    rarity: 'common',
-    petSafe: true,
-    lightNeeds: 'low',
-    wateringFrequency: 'monthly',
-    humidityPreference: 'low',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 30,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '15',
-    name: 'Orchid Care Bundle',
-    slug: 'orchid-care-bundle',
-    category: 'fertilizers',
-    price: 4200,
-    description:
-      '3-piece specialty orchid care set: orchid-specific fertilizer, bark substrate, and humidity tray. Everything needed for thriving orchids.',
-    careGuide:
-      '- Fertilize weekly during bloom\n- Re-pot in bark every 1-2 years\n- Humidity tray keeps roots moist without waterlogging\n- For all orchid varieties\n- Sustainably sourced components',
-    latinName: 'N/A',
-    rarity: 'common',
-    petSafe: false,
-    lightNeeds: 'low',
-    wateringFrequency: 'weekly',
-    humidityPreference: 'medium',
-    imageUrls: ['https://images.unsplash.com/photo-1599599810694-b5ac4dd37e72?w=500&h=500&fit=crop'],
-    stockQuantity: 20,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  // ───────────── Fertilizers & Care ─────────────
+  mk({
+    name: 'Mustard Oil Cake (Shorisha Khoil)', bnName: 'সরিষার খৈল', slug: 'mustard-oil-cake', category: 'fertilizers', price: 75, size: '1 kg',
+    rarity: 'common', lightNeeds: 'low', wateringFrequency: 'monthly', placement: ['indoor', 'outdoor'], imageUrls: [],
+    description: 'A traditional organic feed rich in nitrogen. Popular for leafy plants, fruit trees and vegetables.',
+    careGuide: '- Use: Ferment in water for several days before using as a liquid feed, or mix a small amount into soil\n- Dose: Start small — a little goes a long way\n- Tip: Keep it away from pets (it attracts them)',
+  }),
+  mk({
+    name: 'Bone Meal (Harer Gura)', bnName: 'হাড়ের গুঁড়া', slug: 'bone-meal', category: 'fertilizers', price: 120, size: '1 kg',
+    rarity: 'common', lightNeeds: 'low', wateringFrequency: 'monthly', placement: ['indoor', 'outdoor'], imageUrls: [],
+    description: 'A slow-release source of phosphorus and calcium that supports roots and flowering. Good for roses, fruit trees and bulbs.',
+    careGuide: '- Use: Mix into the soil at planting time or sprinkle around the base and water in\n- Dose: Follow pack directions; do not overdo it\n- Tip: Keep away from pets',
+  }),
+  mk({
+    name: 'Epsom Salt (Magnesium Sulfate)', bnName: 'ইপসম সল্ট', slug: 'epsom-salt', category: 'fertilizers', price: 100, size: '1 kg',
+    rarity: 'common', lightNeeds: 'low', wateringFrequency: 'monthly', placement: ['indoor', 'outdoor'], imageUrls: [],
+    description: 'A magnesium and sulphur supplement used by many growers to help leaf colour and flowering when plants show a deficiency.',
+    careGuide: '- Use: Dissolve a small amount in water and apply occasionally\n- Dose: About 1 teaspoon per litre of water is a common starting point\n- Tip: It supplements — it does not replace — a balanced fertilizer',
+  }),
+  mk({
+    name: 'Vermicompost (Keincho Shar)', bnName: 'কেঁচো সার', slug: 'vermicompost', category: 'fertilizers', price: 250, size: '5 kg',
+    rarity: 'common', lightNeeds: 'low', wateringFrequency: 'monthly', placement: ['indoor', 'outdoor'], imageUrls: [],
+    description: 'Dark, crumbly worm compost that improves soil and feeds plants gently. Safe to mix into potting soil for almost any plant.',
+    careGuide: '- Use: Mix about one part vermicompost to three parts potting soil, or top-dress the pot\n- Dose: A handful per medium pot every month or two\n- Tip: Hard to overuse — a great starter feed for beginners',
+  }),
 ];
 
 export function getProductsByCategory(category: string): Product[] {

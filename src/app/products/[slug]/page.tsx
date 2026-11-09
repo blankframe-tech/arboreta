@@ -4,14 +4,16 @@ import { useCart } from '@/lib/cart-context';
 import { DUMMY_PRODUCTS, getProductBySlug } from '@/lib/dummy-products';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { useState } from 'react';
+import { CATEGORY_MAP } from '@/lib/categories';
+import { use, useState } from 'react';
 
 export default function ProductDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const product = getProductBySlug(params.slug);
+  const { slug } = use(params);
+  const product = getProductBySlug(slug);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -48,10 +50,10 @@ export default function ProductDetailPage({
           </Link>
           <span>/</span>
           <Link
-            href="/categories"
+            href={`/categories/${product.category}`}
             className="hover:text-forest-700 transition-colors"
           >
-            Categories
+            {CATEGORY_MAP[product.category]?.name ?? 'Categories'}
           </Link>
           <span>/</span>
           <span className="text-forest-700 font-600">{product.name}</span>
@@ -103,9 +105,9 @@ export default function ProductDetailPage({
                     Pet Safe
                   </span>
                 )}
-                {product.stockQuantity === 0 && (
+                {!product.available && (
                   <span className="text-xs uppercase tracking-widest font-body font-600 px-4 py-2 rounded-xs bg-gray-300 text-gray-700">
-                    Out of Stock
+                    Currently unavailable
                   </span>
                 )}
               </div>
@@ -150,10 +152,10 @@ export default function ProductDetailPage({
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-widest font-body font-600 text-forest-700 mb-2">
-                    Stock
+                    Best season
                   </p>
                   <p className="font-body text-charcoal">
-                    {product.stockQuantity} available
+                    {product.season ? product.season.label : 'Year-round'}
                   </p>
                 </div>
               </div>
@@ -169,7 +171,7 @@ export default function ProductDetailPage({
             </div>
 
             {/* CTA Section */}
-            {product.stockQuantity > 0 && (
+            {product.available && (
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 border border-forest-700 rounded-xs p-2">
@@ -185,7 +187,7 @@ export default function ProductDetailPage({
                     <button
                       onClick={() =>
                         setQuantity(
-                          Math.min(product.stockQuantity, quantity + 1)
+                          Math.min(10, quantity + 1)
                         )
                       }
                       className="w-8 h-8 flex items-center justify-center text-forest-700 hover:bg-forest-50 transition-colors text-sm font-bold"

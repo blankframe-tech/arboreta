@@ -1,6 +1,7 @@
 'use client';
 
 import { Product } from '@/types/product';
+import { SeasonBadge } from '@/components/SeasonBadge';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -75,6 +76,12 @@ export function ProductCard({
                   Pet Safe
                 </span>
               )}
+              {!product.available && (
+                <span className="text-xs uppercase tracking-widest font-body font-600 px-3 py-1 rounded-xs bg-gray-300 text-gray-700">
+                  Unavailable
+                </span>
+              )}
+              <SeasonBadge product={product} />
             </div>
           </div>
 

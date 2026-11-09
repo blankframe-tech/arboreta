@@ -1,16 +1,14 @@
 'use client';
 
 import { useCart } from '@/lib/cart-context';
+import { shippingFor } from '@/lib/shop-config';
 import Link from 'next/link';
-import { useState } from 'react';
 
 export function CartDrawer() {
-  const { items, removeItem, updateQuantity, subtotal } = useCart();
-  const [isOpen, setIsOpen] = useState(false);
+  const { items, removeItem, updateQuantity, subtotal, isOpen, closeCart } = useCart();
+  const setIsOpen = (open: boolean) => { if (!open) closeCart(); };
 
-  const shipping = subtotal >= 5000 ? 0 : 200;
-  const tax = Math.round(subtotal * 0.05);
-  const total = subtotal + shipping + tax;
+  
 
   return (
     <>
@@ -81,6 +79,11 @@ export function CartDrawer() {
                     <p className="text-gold-400 font-bold mb-2">
                       ৳ {item.product.price.toLocaleString()}
                     </p>
+                    {item.product.luckyDiscount && (
+                      <p className="inline-block mb-2 text-xs font-600 text-forest-700 bg-gold-100 border border-gold-300 rounded-full px-2 py-0.5">
+                        🍀 Lucky Tree −৳{item.product.luckyDiscount}
+                      </p>
+                    )}
 
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-2 mb-2">
@@ -127,18 +130,14 @@ export function CartDrawer() {
               </div>
               <div className="flex justify-between text-charcoal/70 font-body text-sm">
                 <span>Shipping</span>
-                <span>{shipping === 0 ? 'Free' : `৳ ${shipping}`}</span>
-              </div>
-              <div className="flex justify-between text-charcoal/70 font-body text-sm">
-                <span>Tax (5%)</span>
-                <span>৳ {tax.toLocaleString()}</span>
+                <span>{shippingFor(subtotal) === 0 ? 'Free' : `৳ ${shippingFor(subtotal)}`}</span>
               </div>
               <div className="flex justify-between border-t border-cream-200 pt-3">
                 <span className="font-display font-bold text-forest-700">
                   Total
                 </span>
                 <span className="text-gold-400 font-display font-bold text-lg">
-                  ৳ {total.toLocaleString()}
+                  ৳ {(subtotal + shippingFor(subtotal)).toLocaleString()}
                 </span>
               </div>
 
@@ -159,14 +158,6 @@ export function CartDrawer() {
         </div>
       </div>
 
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed right-6 bottom-6 z-30 p-3 bg-forest-700 text-cream-50 rounded-full shadow-lg hover:shadow-card-hover transition-all hover:scale-110 font-display font-bold text-xl"
-        title="Open cart"
-      >
-        🛒 {items.length > 0 && <span className="ml-1">{items.length}</span>}
-      </button>
     </>
   );
 }
