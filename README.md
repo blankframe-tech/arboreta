@@ -20,8 +20,9 @@ Arboreta by Shifuta is a curated botanical e-commerce platform that feels like a
 
 ## 📁 Documentation
 
-- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** — Brand identity, color palette, typography, component library, and all design specifications
-- **[APP_PLAN.md](./APP_PLAN.md)** — Complete feature set, technical architecture, database schema, API routes, and roadmap
+- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)**: brand identity, colours, typography and components
+- **[nursery-checklist.csv](./nursery-checklist.csv)**: every product with its price, to be filled in with the nursery that stocks it
+- **[docs/archive/](./docs/archive/)**: the July 2026 plans (Stripe, Resend, accounts). Superseded; history only
 
 ---
 
@@ -47,12 +48,10 @@ All components are premium-first: cards with subtle shadows, smooth transitions,
 
 | Layer | Technology |
 |-------|-----------|
-| **Frontend** | Next.js 15, React 19, Tailwind CSS |
-| **Backend** | Next.js API Routes, Node.js |
-| **Database** | Supabase (PostgreSQL) |
-| **Storage** | Supabase Storage / Cloudinary |
-| **Payment** | Stripe |
-| **Email** | Resend |
+| **Frontend** | Next.js 15 (App Router), React 19, Tailwind CSS |
+| **Backend** | Next.js API routes (`/api/orders`, `/api/admin/orders`) |
+| **Orders** | Supabase Postgres (`supabase/migrations`), or `data/orders.json` locally |
+| **Payment** | bKash and Nagad "Send Money" to a personal number (customer enters the TrxID), or Cash on Delivery. No card payments |
 | **Hosting** | Vercel |
 
 ---
@@ -62,109 +61,66 @@ All components are premium-first: cards with subtle shadows, smooth transitions,
 ```
 arboreta/
 ├── src/
-│   ├── app/                 # Next.js App Router
-│   │   ├── layout.tsx       # Root layout (header, footer)
-│   │   ├── page.tsx         # Homepage
-│   │   ├── globals.css      # Global styles + design tokens
-│   │   └── api/             # API routes (coming soon)
-│   ├── components/          # React components (coming soon)
-│   ├── lib/                 # Utilities and helpers
-│   └── types/               # TypeScript type definitions
-├── public/                  # Static assets
-├── DESIGN_SYSTEM.md         # Brand identity
-├── APP_PLAN.md              # Feature roadmap & architecture
-└── package.json
+│   ├── app/                 # Pages: home, categories, products, rarest, checkout, blog, admin/orders, policy pages
+│   │   └── api/             # orders (place an order), admin/orders (list and update, needs ADMIN_KEY)
+│   ├── components/          # Header, footer, cart drawer, catalog, Lucky Tree finder
+│   ├── lib/                 # Catalog (dummy-products.ts), nurseries.ts, shop-config.ts, orders.ts, blog posts
+│   └── types/
+├── supabase/migrations/     # The orders table (RLS on, server key only)
+├── public/                  # Images
+└── nursery-checklist.csv
 ```
 
 ---
 
 ## 🛠 Getting Started
 
-### Prerequisites
-- Node.js ≥ 18
-- pnpm (or npm/yarn)
+Prerequisites: Node.js 18 or newer and pnpm.
 
-### Installation
+```bash
+pnpm install
+cp .env.example .env.local   # set ADMIN_KEY; leave the Supabase pair unset to store orders in data/orders.json
+pnpm dev                     # http://localhost:3000
+pnpm exec vitest run         # tests
+pnpm build
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/arboreta.git
-   cd arboreta
-   ```
+Shop settings (bKash/Nagad numbers, delivery charge, free-delivery threshold) are in `src/lib/shop-config.ts`.
+A wallet with an empty number is hidden at checkout. Partner nurseries are in `src/lib/nurseries.ts`.
 
-2. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
+### Environment variables
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   # Fill in your Supabase, Stripe, and Resend API keys
-   ```
+| Name | Where | What |
+|---|---|---|
+| `ADMIN_KEY` | server | Password for `/admin/orders` |
+| `SUPABASE_URL` | server | Supabase project URL. Required on Vercel |
+| `SUPABASE_SERVICE_ROLE_KEY` | server | Supabase service key. Required on Vercel; never prefix with `NEXT_PUBLIC_` |
+| `NEXT_PUBLIC_APP_URL` | public | The site's URL (in `.env.example`; not read by the code yet) |
 
-4. **Run the development server**
-   ```bash
-   pnpm dev
-   ```
-
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+On Vercel the app refuses to take orders when the Supabase pair is missing (Vercel does not keep files).
 
 ### Deploy (Vercel + Supabase)
 
-Orders are stored in Supabase when `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set, otherwise in `data/orders.json` (local only; Vercel does not keep files).
-
-1. Create a Supabase project, then apply the migration: `supabase link --project-ref <ref>` and `supabase db push` (or paste `supabase/migrations/*_orders.sql` into the SQL editor).
-2. `vercel link`, then add `ADMIN_KEY`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` with `vercel env add <NAME>` (Production and Preview).
+1. Create a Supabase project, then `supabase link --project-ref <ref>` and `supabase db push` (or paste `supabase/migrations/*_orders.sql` into the SQL editor).
+2. `vercel link`, then add `ADMIN_KEY`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` with `vercel env add <NAME>` (Preview first).
 3. `vercel` deploys a preview, `vercel --prod` deploys production.
 
 ---
 
-## 📝 Key Features (MVP)
+## 📝 Features
 
-- ✨ **Homepage** with category preview and featured plants
-- 🛍️ **Product browsing** with filters (care level, price, rarity, pet-safe)
-- 🛒 **Shopping cart** with slide-in drawer UI
-- 💳 **Checkout flow** with Stripe payment integration
-- 👤 **Admin dashboard** for product and order management (coming soon)
-- 📧 **Email notifications** with Resend
-- ❤️ **Wishlist** functionality (coming soon)
-
----
-
-## 🎯 Roadmap
-
-### Phase 1 (Current)
-- [x] Design system
-- [x] Project scaffolding
-- [ ] Homepage + category pages
-- [ ] Product detail pages
-- [ ] Shopping cart + checkout
-- [ ] Admin dashboard
-
-### Phase 2 (v1.1)
-- [ ] User accounts + wishlist
-- [ ] Advanced analytics
-- [ ] Email marketing
-- [ ] Social integration
-
-### Phase 3 (v1.2)
-- [ ] Blog / care guides
-- [ ] Subscription boxes
-- [ ] Community features
-- [ ] International shipping
+- 🛍️ **Catalog** in seven categories with season badges, filters and a "rarest" page
+- 🍀 **Lucky Tree finder** with a discount checked on the server
+- 🛒 **Cart drawer and checkout**: bKash or Nagad (Send Money + TrxID) or Cash on Delivery, free delivery above the threshold
+- 📋 **Order admin** at `/admin/orders`: verify the TrxID, move an order through new → awaiting confirmation → confirmed → sent to nursery → shipped → delivered (or cancelled), and see which nursery ships each item
+- 📰 **Blog** with plant-care posts
+- No customer accounts, wishlist, card payments or email notifications
 
 ---
 
 ## 💰 Product Categories
 
-1. **Seeds** — vegetable, flower, tree seeds
-2. **Flower Trees** — tropical/deciduous flowering trees
-3. **Seasonal** — holiday plants, limited availability
-4. **Bonsais** — miniature, curated specimens
-5. **Fruit Trees** — mango, lemon, dragon fruit, etc.
-6. **Fertilizers** — organic, specialty, branded
-7. **Office Plants** — air-purifying, low-maintenance
+Seeds, Flowering Plants, Seasonal Flowers, Bonsais, Fruit Trees, Fertilizers & Care, Indoor & Office Plants (`src/lib/categories.ts`).
 
 ---
 
@@ -177,15 +133,3 @@ This is a private project for Arboreta by Shifuta. Contributions by invitation o
 ## 📄 License
 
 All rights reserved © 2026 Arboreta by Shifuta.
-
----
-
-## 📞 Contact
-
-For inquiries about the platform or plant sourcing:
-- Email: contact@arboreta.example
-- Instagram: [@ArboretaByShifuta](https://instagram.com)
-
----
-
-**Built with ❤️ and obsessive attention to detail.**
